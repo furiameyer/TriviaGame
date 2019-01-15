@@ -1,4 +1,4 @@
-// First, declare VARIABLES
+// Declare VARIABLES
 // --------------------------------------------------------------------------------------------------------------------
 var remainingTime;
 var roundCounter;
@@ -9,6 +9,7 @@ var targetElement;
 var wins;
 var misses;
 var unanswered;
+var progress;
 
 var triviaDB = [
 {   Question: "Tasmania is an isolated island state belonging to which country?",
@@ -45,12 +46,11 @@ var triviaDB = [
     Options: ["70 Meters", "100 Feet", "100 Meters", "300 Feet"]}
 ];
 
-// Second, define Functions
+// Define FUNCTIONS
 // --------------------------------------------------------------------------------------------------------------------
 
 // This function shuffles the contents of an array
 // It is used for ensuring that the sort order of the questions and the answer options is never the same
-
 Array.prototype.shuffle = function() {
     var input = this;
      
@@ -65,65 +65,12 @@ Array.prototype.shuffle = function() {
     return input;
 };
 
-// These functions build timer functionality and display it
-
-function clearScreen() {
-    $("#gameProgress").empty();
-}
-
+// Build timer functionality and display it
 function showTimer() {
     var timer = $("<p>");
     timer.text("Time Remaining: " + remainingTime + " seconds");
     timer.addClass("timer");
     $("#gameProgress").prepend(timer);
-};
-
-function runQuestion() {
-    targetElement = triviaDB[roundCounter-1];
-    var questionDOM = $("<p>")
-    questionDOM.text(targetElement.Question);
-    $("#gameProgress").append(questionDOM);
-    
-    targetElement.Options.shuffle();
-    for (var i=0;i<4;i++) {
-        var answerLoop = targetElement.Options[i];
-        var answerDOM = $("<p>");
-        answerDOM.text(answerLoop);
-        answerDOM.attr("data-answer", answerLoop);
-        answerDOM.addClass("answerChoices");
-        $("#gameProgress").append(answerDOM);
-    };
-};
-
-
-function kickoff () {
-    triviaDB.shuffle();
-    roundCounter = 0;
-    timesUp = false;
-    wonRound = false;
-    wins=0;
-    misses=0;
-    unanswered=0;
-    newRound();
-};   
-
-
-function newRound() {
-    if (roundCounter==8) {
-        finalScreen();
-    } else {
-        clearScreen();
-        remainingTime = 30;
-        timesUp = false;
-        wonRound = false;
-        roundCounter++;
-        console.log(roundCounter);
-        showTimer();
-        runQuestion();
-        // clicker();
-        clearInterval(interval);
-        interval = setInterval(decrement, 1000);
-    };
 };
 
 function decrement() {
@@ -139,10 +86,75 @@ function decrement() {
     };
 };
 
-function stop() {
-    clearInterval(interval);
+// Generate question and display possible answers
+function runQuestion() {
+    targetElement = triviaDB[roundCounter-1];
+    var questionDOM = $("<p>");
+    questionDOM.addClass("font-weight-bold");
+    questionDOM.text(targetElement.Question);
+    $("#gameProgress").append(questionDOM);
+    
+    targetElement.Options.shuffle();
+    for (var i=0;i<4;i++) {
+        var answerLoop = targetElement.Options[i];
+        var answerDOM = $("<p>");
+        answerDOM.text(answerLoop);
+        answerDOM.attr("data-answer", answerLoop);
+        answerDOM.addClass("answerChoices list-group-item list-group-item-action");
+        $("#gameProgress").append(answerDOM);
+    };
 };
 
+// Update progress bar at bottom
+function updateProgressBar(progress) {
+    var width = "width: " + (progress*100) + "%";
+    var progressBarDiv = $("<div>");
+    progressBarDiv.addClass("progress");
+    progressBarDiv.attr("style", "margin-top: 30px;");
+    var progressBar = $("<div>");
+    progressBar.addClass("progress-bar progress-bar-striped bg-warning");
+    progressBar.attr("role", "progressbar");
+    progressBar.attr("style", width);
+    progressBarDiv.append(progressBar);
+    $("#gameProgress").append(progressBarDiv);
+    console.log(progressBarDiv);
+}
+
+// Launch game
+function kickoff () {
+    triviaDB.shuffle();
+    roundCounter = 0;
+    timesUp = false;
+    wonRound = false;
+    wins=0;
+    misses=0;
+    unanswered=0;
+    progress=0;
+    newRound();
+};   
+
+// Generate new round
+function newRound() {
+    if (roundCounter==8) {
+        finalScreen();
+    } else {
+        clearScreen();
+        remainingTime = 30;
+        timesUp = false;
+        wonRound = false;
+        roundCounter++;
+        progress = (roundCounter)/8;
+        console.log(roundCounter);
+        console.log("progress"+progress);
+        showTimer();
+        runQuestion();
+        updateProgressBar(progress);
+        clearInterval(interval);
+        interval = setInterval(decrement, 1000);
+    };
+};
+
+// Display round outcome screen
 function Outcome() {
     clearScreen();
     var outcome = $("<h2>");
@@ -159,12 +171,13 @@ function Outcome() {
     correctAns.text("The correct answer was " + targetElement.Answer)
     var correctPic = $("<img>");
     correctPic.attr("src", targetElement.Image);
-    correctPic.addClass("gifbanner");
-    $("#gameProgress").append(outcome, correctAns,correctPic);
+    correctPic.attr("style", "max-width: 350px;");
+    $("#gameProgress").append(outcome,correctAns,correctPic);
 
-    var wait = setTimeout(newRound, 5000);
+    var wait = setTimeout(newRound, 4500);
 };
 
+// Display final game outcome screen
 function finalScreen () {
     clearScreen ();
     var allDone = $("<h2>");
@@ -182,6 +195,7 @@ function finalScreen () {
     $("#gameProgress").on("click", ".replay",kickoff);
 };
 
+// Launch button
 function startupScreen () {
     var play = $("<button>");
     play.text("Ready to Play? Press Here!");
@@ -190,11 +204,20 @@ function startupScreen () {
     $("#gameProgress").on("click", ".play", kickoff);
 };
 
-// Finally, launch game
+// Utalitarian functions
+function clearScreen() {
+    $("#gameProgress").empty();
+}
+
+function stop() {
+    clearInterval(interval);
+};
+
+// LAUNCH GAME
 // --------------------------------------------------------------------------------------------------------------------
 startupScreen();
 
-// Sets up Click event listener
+// Set up Click event listener
 // --------------------------------------------------------------------------------------------------------------------
 $(document).on("click",".answerChoices", function(){
     stop();
