@@ -9,7 +9,7 @@
 
 ## Special Features
 
-* [Random order for questions and possible answers]
-* [Funny images or dynamic Gifs with answers]
+* Random order for questions and possible answers
+* Funny images or dynamic Gifs with answers
 
 ---
